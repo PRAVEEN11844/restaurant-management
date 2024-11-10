@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import font
 import datetime
 import sqlite3
-from tkinter import messagebox 
+from tkinter import messagebox
 from tkinter import ttk
 
 
