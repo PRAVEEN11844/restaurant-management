@@ -1,9 +1,11 @@
+
 from tkinter import *
 from tkinter import font
 import datetime
 import sqlite3
-from tkinter import messagebox
+from tkinter import messagebox 
 from tkinter import ttk
+
 
 
 
@@ -170,7 +172,11 @@ def Delete():
             connectn.close
 
 def exit():
-        root.destroy()
+        res=messagebox.askquestion('confirm', 'are you sure you want to exit?', icon="warning")
+        if res == 'yes':
+            root.destroy()
+        else:
+             return
 
 
 
@@ -198,122 +204,254 @@ def add():
         DisplayData()
         connectn.close
 
+
 def menucard():
-    rt=Tk()
+    rt = Tk()
     rt.title("Menu Card")
 
-    frame = Frame(rt,highlightbackground="black", highlightthickness=2, width = 230, height=200,border=20)
-    frame.pack()
 
-    title_font=font.Font(size=30)
-    title=Label(rt,text="----MENU----",font=title_font, fg="black")
-    title.place(relx=0.1,rely=0.1,anchor=CENTER)
+    frame = Frame(rt, highlightbackground="black", highlightthickness=2, width=500, height=700, border=20)
+    frame.pack(padx=20, pady=20)  
 
-    title.pack()
-
-    myLab=Label(rt,text="PIZZA",font=("Calibri",14,"bold"))
-    myLab.place(relx=0.1,rely=0.1,anchor='w')
-
-    myLab1=Label(rt,text="BURGER",font=("Calibri",14,"bold"))
-    myLab1.place(relx=0.1,rely=0.3,anchor='w')
-
-    myLab2=Label(rt,text="ICE CREAM",font=("Calibri",14,"bold"))
-    myLab2.place(relx=0.1,rely=0.5,anchor='w')
-
-    myLab3=Label(rt,text="DRINKS",font=("Calibri",14,"bold"))
-    myLab3.place(relx=0.1,rely=0.7,anchor='w')
+    title_font = font.Font(size=30)
+    title = Label(rt, text="----MENU----", font=title_font, fg="black")
+    title.place(relx=0.5, rely=0.1, anchor=CENTER)  
 
 
-    myLab=Label(rt,text="250/-",font=("Calibri",14,"bold"))
-    myLab.place(relx=0.7,rely=0.1,anchor='w')
+    items = ["PIZZA", "BURGER", "ICE CREAM", "DRINKS"]
+    prices = ["250", "140", "90", "50"]
 
-    myLab1=Label(rt,text="140/-",font=("Calibri",14,"bold"))
-    myLab1.place(relx=0.7,rely=0.3,anchor='w')
+    def add_item():
+        item_name = item_entry.get()
+        item_price = price_entry.get()
 
-    myLab2=Label(rt,text="90/-",font=("Calibri",14,"bold"))
-    myLab2.place(relx=0.7,rely=0.5,anchor='w')
+        if item_name=="" or item_price=="":
+             messagebox.showerror('Warning',"Please enter the name and price of the item to be added")
+        
+        if item_name and item_price: 
+            items.append(item_name)
+            prices.append(item_price)
+            update_menu()
 
-    myLab3=Label(rt,text="50/-",font=("Calibri",14,"bold"))
-    myLab3.place(relx=0.7,rely=0.7,anchor='w')
+            item_entry.delete(0, END)
+            price_entry.delete(0, END)
+        messagebox.showinfo("Message", "Stored successfully")
 
+    def update_menu():
+       
+        for widget in frame.winfo_children():
+            widget.destroy()
+
+   
+        for i, item in enumerate(items):
+            item_label = Label(rt, text=item, font=("Calibri", 14, "bold"))
+            price_label = Label(rt, text=prices[i], font=("Calibri", 14, "bold"))
+            
+            item_label.place(relx=0.1, rely=0.2 + i*0.1, anchor='w')  
+            price_label.place(relx=0.7, rely=0.2 + i*0.1, anchor='w')  
+
+        
+
+    item_label = Label(rt, text="Item Name:", font=("Calibri", 12))
+    item_label.place(relx=0.1, rely=0.9, anchor='w')
+
+    item_entry = Entry(rt, font=("Calibri", 12), width=15)
+    item_entry.place(relx=0.3, rely=0.9, anchor='w')
+
+    price_label = Label(rt, text="Price:", font=("Calibri", 12))
+    price_label.place(relx=0.5, rely=0.9, anchor='w')
+
+    price_entry = Entry(rt, font=("Calibri", 12), width=10)
+    price_entry.place(relx=0.6, rely=0.9, anchor='w')
+
+
+    add_button = Button(rt, text="Add Item", font=("Calibri", 12), command=add_item)
+    add_button.place(relx=0.8, rely=0.9, anchor='w')
+
+    update_menu()
+
+
+    rt.mainloop()
+
+
+
+
+
+def show_feedback():
+
+    show_win = Tk()
+    show_win.geometry("600x400")
+    show_win.title("All Feedback")
+
+
+    feedback_text = Text(show_win, width=70, height=20, wrap='word', state='normal')
+    feedback_text.pack(padx=10, pady=10, fill='both', expand=True)
+
+    scrollbar = Scrollbar(show_win, command=feedback_text.yview)
+    scrollbar.pack(side='right', fill='y')
+    feedback_text.config(yscrollcommand=scrollbar.set)
+
+    try:
+        with sqlite3.connect("Restaurant.db") as connectn:
+            cursor = connectn.cursor()
+
+            cursor.execute("SELECT * FROM FEEDBACK")
+            rows = cursor.fetchall()
+            
+            
+            if not rows:
+                feedback_text.insert(END, "No feedback available.\n")
+            else:
+                for row in rows:
+                    feedback_text.insert(END, f"Name: {row[0]}\n")
+                    feedback_text.insert(END, f"Email: {row[1]}\n")
+                    feedback_text.insert(END, f"Comments: {row[2]}\n")
+                    feedback_text.insert(END, f"Experience: {row[3]}\n")
+                    feedback_text.insert(END, f"Quality: {row[4]}\n")
+                    feedback_text.insert(END, f"Menu Variety: {row[5]}\n")
+                    feedback_text.insert(END, f"Cleanliness: {row[6]}\n")
+                    feedback_text.insert(END, f"Value for Money: {row[7]}\n")
+                    feedback_text.insert(END, "-" * 50 + "\n")
+
+    except sqlite3.Error as e:
+        messagebox.showerror("Database Error", f"Error occurred while connecting to the database: {e}")
+        return 
+
+
+    close_btn = Button(show_win, text="Close", command=show_win.destroy)
+    close_btn.pack(pady=10)
+    labb1=Label(show_win, font=('Verdana', 7), text="Excellent : 3").place(x=420, y=350)
+    labb2=Label(show_win, font=('Verdana', 7), text="Good : 2" ).place(x=420, y=370)
+    labb3=Label(show_win, font=('Verdana', 7), text="Average : 1").place(x=500, y=350)
+    labb4=Label(show_win, font=('Verdana', 7), text="Poor : 0").place(x=500, y=370)
+
+    show_win.mainloop()
+
+
+from tkinter import Tk, Text, Button, IntVar, END, messagebox, Label, Entry, Checkbutton, W, TOP
 
 def feedbackk():
-        feed = Tk()
-        feed.geometry("600x500")
-        feed.title("Submit Feedback form")
-        connectn = sqlite3.connect("Restaurant.db")
-        cursor = connectn.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS FEEDBACK(n text,eid text,feedback5 text,com text)")
-        name = StringVar()
-        email = StringVar()
-        comments = StringVar()
+    feed = Tk()
+    feed.geometry("600x800")
+    feed.title("Submit Feedback Form")
 
-        def submit():
-            n = name.get()
-            eid = email.get()
-            com = txt.get('1.0', END)
-            feedback1 = ""
-            feedback2 = ""
-            feedback3 = ""
-            feedback4 = ""
-            if (checkvar1.get() == "1"):
-                feedback1 = "Excellent"
-            if (checkvar2.get() == "1"):
-                feedback2 = "Good"
-            if (checkvar3.get() == "1"):
-                feedback2 = "Average"
-            if (checkvar4.get() == "1"):
-                feedback2 = "Poor"
-            feedback5 = feedback1 + " " + feedback2 + " " + feedback3 + " " + feedback4
-            conn = sqlite3.connect("Restaurant.db")
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO FEEDBACK VALUES ('" + n + "','" + eid + "','" + com + "','" + feedback5 + "')")
-            messagebox.showinfo("message", "data inserted !")
+    connectn = sqlite3.connect("Restaurant.db")
+    cursor = connectn.cursor()
+   
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS FEEDBACK(
+            n TEXT,
+            eid TEXT,
+            com TEXT,
+            feed1 INTEGER,
+            feed2 INTEGER,
+            feed3 INTEGER,
+            feed4 INTEGER,
+            feed5 INTEGER
+        )
+    """)
+
+    # Input fields
+    Label(feed, font=('Verdana', 15), text="Name:", fg="black").place(x=10, y=120)
+    name = Entry(feed, width=25)
+    name.place(x=15, y=160)
+
+    Label(feed, font=('Verdana', 15), text="Email:", fg="black").place(x=280, y=120)
+    email = Entry(feed, width=25)
+    email.place(x=285, y=160)
+
+    # Comments
+    Label(feed, font=('Verdana', 15), text="Comments:", fg="black").place(x=10, y=520)
+    txt = Text(feed, width=50, height=5)
+    txt.place(x=15, y=570)
+
+    # Feedback variables
+    feedback_vars = [IntVar(value=0) for _ in range(20)]  # Create a list of IntVars for ratings
+
+    def select_rating(category_index, rating):
+        for i in range(4):  # Uncheck all checkboxes in this category
+            if i != rating:
+                feedback_vars[category_index * 4 + i].set(0)
+        feedback_vars[category_index * 4 + rating].set(1)  # Set the selected rating
+
+    def submit():
+        n = name.get().strip()
+        eid = email.get().strip()
+        com = txt.get('1.0', END).strip()
+
+        # Validate input
+        if not n or not eid:
+            messagebox.showerror("Input Error", "Name and Email cannot be empty.")
+            return
+
+        # Collect feedback ratings
+        ratings = []
+        for i in range(5):
+            rating = -1
+            for j in range(4):
+                if feedback_vars[i * 4 + j].get() == 1:
+                    rating = 3 - j  # Convert checkbox selection to rating
+                    break
+            ratings.append(rating)
+
+        # Check if all ratings are provided
+        if any(rating == -1 for rating in ratings):
+            messagebox.showerror("Input Error", "Please provide ratings for all categories.")
+            return
+
+        # Insert feedback into the database
+        try:
+            cursor.execute("INSERT INTO FEEDBACK (n, eid, com, feed1, feed2, feed3, feed4, feed5) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
+                           (n, eid, com, *ratings))
+            connectn.commit()
+            messagebox.showinfo("Message", "Feedback inserted!")
             feed.destroy()
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
 
-        def cancel():
-            feed.destroy()
+    def cancel():
+        feed.destroy()
 
-        lb1 = Label(feed, font=("Calisto MT", 15, "bold"), text="Thanks for Visiting!", fg="black").pack(side=TOP)
-        lbl2 = Label(feed, font=("calisto MT", 15), text="We're glad you chose us ! Please tell us how it was!",
-                     fg="black").pack(side=TOP)
-        
-        namelbl = Label(feed, font=('vardana', 15), text="Name:-", fg="black", bd=10, anchor=W).place(x=10, y=150)
-        nametxt = Entry(feed, font=('vardana', 15), bd=6, insertwidth=2, bg="white", justify='right',
-                        textvariable=name).place(x=15, y=185)
-        emaillbl = Label(feed, font=('vardana', 15), text="Email:-", fg="black", bd=10, anchor=W).place(x=280, y=150)
-        emailtxt = Entry(feed, font=('vardana', 15), bd=6, insertwidth=2, bg="white", justify='right',
-                         textvariable=email).place(x=285, y=185)
+    lb1 = Label(feed, font=("Calisto MT", 15, "bold"), text="Thanks for Visiting!", fg="black").pack(side=TOP)
+    lbl2 = Label(feed, font=("calisto MT", 15), text="We're glad you chose us! Please tell us how it was!", fg="black").pack(side=TOP)
 
-        ratelbl = Label(feed, font=('vardana', 15), text="How would you rate us?", fg="black", bd=10, anchor=W).place(
-            x=10, y=215)
-        checkvar1 = StringVar()
-        checkvar2 = StringVar()
-        checkvar3 = StringVar()
-        checkvar4 = StringVar()
-        c1 = Checkbutton(feed, font=('Calibri', 10, "bold"), text="Excellent", bg="white", variable=checkvar1)
-        c1.deselect()
-        c1.place(x=15, y=265)
-        c2 = Checkbutton(feed, font=('Calibri', 10, "bold"), text="Good", bg="white", variable=checkvar2, )
-        c2.deselect()
-        c2.place(x=120, y=265)
-        c3 = Checkbutton(feed, font=('Calibri', 10, "bold"), text=" Average", bg="white", variable=checkvar3, )
-        c3.deselect()
-        c3.place(x=220, y=265)
-        c4 = Checkbutton(feed, font=('Calibri', 10, "bold"), text="   Poor  ", bg="white", variable=checkvar4, )
-        c4.deselect()
-        c4.place(x=320, y=265)
+    # Rating Categories
+    categories = [
+        "Overall Experience",
+        "Quality of Food and Drinks",
+        "Menu Variety",
+        "Cleanliness and Ambiance",
+        "Value for Money"
+    ]
 
-        commentslbl = Label(feed, font=('Calibri', 15), text="Comments", fg="black", bd=10, anchor=W).place(x=10, y=300)
-        txt = Text(feed, width=50, height=5)
-        txt.place(x=15, y=335)
-        submit = Button(feed, font=("Calibri", 15), text="Submit", fg="black", bg="green", bd=2, command=submit).place(
-            x=145, y=430)
-        
-        cancel = Button(feed, font=("Calibri", 15), text="Cancel", fg="black", bg="red", bd=2, command=cancel).place(
-            x=245, y=430)
-        feed.mainloop()
+    y_position = 200
+    for i, category in enumerate(categories):
+        Label(feed, font=('Verdana', 15), text=f"{i + 1}. {category}", fg="black").place(x=10, y=y_position)
+        y_position += 30
 
+        # Create Checkbuttons for each category
+        Checkbutton(feed, text="Excellent", variable=feedback_vars[i * 4 + 0], 
+                    command=lambda idx=i: select_rating(idx, 0)).place(x=15, y=y_position)
+        Checkbutton(feed, text="Good", variable=feedback_vars[i * 4 + 1], 
+                    command=lambda idx=i: select_rating(idx, 1)).place(x =15 + 100, y=y_position)
+        Checkbutton(feed, text="Average", variable=feedback_vars[i * 4 + 2], 
+                    command=lambda idx=i: select_rating(idx, 2)).place(x=15 + 200, y=y_position)
+        Checkbutton(feed, text="Poor", variable=feedback_vars[i * 4 + 3], 
+                    command=lambda idx=i: select_rating(idx, 3)).place(x=15 + 300, y=y_position)
+        y_position += 30
+
+    # Submit and Cancel buttons
+    submit_btn = Button(feed, font=("Calibri", 15), text="Submit", fg="black", bg="green", bd=2, command=submit)
+    submit_btn.place(x=15, y=680)
+    cancel_btn = Button(feed, font=("Calibri", 15), text="Cancel", fg="black", bg="red", bd=2, command=cancel)
+    cancel_btn.place(x=100, y=680)
+
+    feed.mainloop()
+
+
+
+show_btn = Button(root, text="Show All Feedback", command=show_feedback, font=("Calibri", 12), bg="grey", fg="white")
+show_btn.place(relx=0.293 ,rely=0.67)
 
 e1 = Entry(root,width=30,borderwidth=5,textvariable=orderno,font=("Calibri",10,"bold"))
 e1.place(relx=0.08,rely=0.2,anchor='w')
